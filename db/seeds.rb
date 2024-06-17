@@ -7,13 +7,27 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
-require 'faker'
 
-676.times do
-  Product.create(
-    title: Faker::Commerce.product_name,
-    description: Faker::Lorem.paragraph,
-    price: Faker::Commerce.price(range: 0.0..100.0),
-    stock_quantity: Faker::Number.number(digits: 3)
+require "csv"
+
+# Delete all existing products and categories
+Product.destroy_all
+Category.destroy_all
+
+# Seed categories
+categories = {}
+
+CSV.foreach(Rails.root.join('db', 'products.csv'), headers: true) do |row|
+  category_name = row['category'].strip
+  unless categories[category_name]
+    categories[category_name] = Category.create!(name: category_name)
+  end
+
+  Product.create!(
+    title: row['title'].strip,
+    description: row['description'].strip,
+    price: row['price'].strip.to_d,
+    stock_quantity: row['stock_quantity'].strip.to_i,
+    category: categories[category_name]
   )
 end
